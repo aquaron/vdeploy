@@ -2,7 +2,7 @@
   "name": "vdeploy",
   "description": "Manage deployment, changelog, and version",
   "version": "0.0.0",
-  "author": "Paul Pham <git@aquaron.com>",
+  "author": "Paul Pham <npm@aquaron.com>",
   "homepage": "https://github.com/aquaron/vdeploy",
   "bugs": "https://github.com/aquaron/vdeploy/issues",
   "keywords": [

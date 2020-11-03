@@ -55,24 +55,41 @@ function info() {
 }
 
 function install_files() {
+  local _file=$(readlink -f $0)
+  local _deps_dir=$(dirname $_file)/../deps
   if [[ -s "${WORKFLOWS_DIR}/${DEPLOY_YML}" ]]; then
     info "Found $(green ${DEPLOY_YML})"
   else
     yesno "Add GitHub Actions ${DEPLOY_YML} script?"
     [[ $? = 0 ]] && abort "Can't continue without this script"
     mkdir -p ${WORKFLOWS_DIR}
-    cp ${DEPLOY_YML} ${WORKFLOWS_DIR}
+    cp ${_deps_dir}/${DEPLOY_YML} ${WORKFLOWS_DIR}
   fi
 
   if [[ -s "${SCRIPTS_DIR}/${VSCRIPT}" ]]; then
     info "Found $(green ${VSCRIPT})"
   else
     mkdir -p ${SCRIPTS_DIR}
-    cp ${VSCRIPT} ${SCRIPTS_DIR}
+    cp ${_deps_dir}/${VSCRIPT} ${SCRIPTS_DIR}
   fi
+
+  local _branch=$(git branch 2>&1 | grep '*' | cut -f2 -d" ")
+  [[ ! "${_branch}" ]] && abort "Can't find a default branch"
+
+  sed -i "s/base: .*/base: ${_branch}/" ${WORKFLOWS_DIR}/${DEPLOY_YML}
+  info "Found branch $(green "${_branch}")"
 }
 
 function get_released_version() {
+  [[ "$(git status 2>&1 | grep 'Not a git')" ]] \
+    && abort "This must be a git repo"
+
+  [[ ! "$(git remote 2>&1)" ]] \
+    && abort "Repo must have a remote"
+
+  [[ ! "$(git branch 2>&1)" ]] \
+    && abort "Repo should have a branch"
+
   local _ghloc=$(which gh)
   [[ ! "$_ghloc" ]] \
     && abort "Requires GitHub CLI (https://cli.github.com/)"
@@ -87,7 +104,7 @@ function get_released_version() {
 }
 
 function set_new_version() {
-  local _prev_tag=$(git describe --tags --abbrev=0)
+  local _prev_tag=$(git describe --tags --abbrev=0 2>&1 | grep -ve '^fatal:')
   [[ "${_prev_tag}" ]] && _prev_tag="${_prev_tag}..HEAD"
   readonly CHANGELOG_TXT=$(git log --pretty="- %s" ${_prev_tag})
 
@@ -147,14 +164,21 @@ function merge_changelog() {
 
 function commit_changelog() {
   info "Commit new $(green ${CHANGELOG})"
+  local _ignored=$(grep ${NEW_CHANGELOG} .gitignore)
+  [[ ! "${_ignored}" ]] \
+    && echo "${NEW_CHANGELOG}" >> .gitignore
 
   git add -A
   git commit -m "docs: update changelog (${NEW_VERSION})"
-  git push
+  local _error=$(git push 2>&1 | grep "doing nothing")
+
+  [[ "${_error}" ]] && abort "Can't push to remote, try setting that up"
 }
 
 function create_release() {
-  info "Previous released title version $(yellow "${RELEASED_VERSION}")"
+  [[ "${RELEASED_VERSION}" ]] \
+    && info "Previous released title version $(yellow "${RELEASED_VERSION}")"
+
   local _title=$(ask_for_string "New release title" "v${NEW_VERSION}")
 
   info "Creating new GitHub release tag $(green "v${NEW_VERSION}") with title $(green "${_title}")"
@@ -167,6 +191,7 @@ function create_release() {
 }
 
 function get_current_version() {
+  [[ ! -s "${PACKAGE}" ]] && abort "No $PACKAGE"
   readonly CURRENT_VERSION=$(grep '"version"' $PACKAGE | sed -e 's/^[^:]\+: "\([^"]\+\)".*/\1/g')
   [[ ! "${CURRENT_VERSION}" ]] \
     && abort "$PACKAGE must have $(green version) defined"
