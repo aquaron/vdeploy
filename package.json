@@ -1,0 +1,33 @@
+{
+  "name": "vdeploy",
+  "description": "Manage deployment, changelog, and version",
+  "version": "0.0.0",
+  "author": "Paul Pham <git@aquaron.com>",
+  "homepage": "https://github.com/aquaron/vdeploy",
+  "bugs": "https://github.com/aquaron/vdeploy/issues",
+  "keywords": [
+    "deploy",
+    "release",
+    "version",
+    "manager",
+    "binary"
+  ],
+  "bin": {
+    "vdeploy": "./bin/vdeploy"
+  },
+  "files": [
+    "bin/vdeploy"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aquaron/vdeploy.git"
+  },
+  "preferGlobal": true,
+  "os": [
+    "!win32"
+  ],
+  "engines": {
+    "node": "*"
+  },
+  "license": "MIT"
+}

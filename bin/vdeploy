@@ -1,0 +1,186 @@
+#!/usr/bin/env bash
+
+readonly WORKFLOWS_DIR=.github/workflows
+readonly SCRIPTS_DIR=.github/scripts
+readonly DEPLOY_YML=vdeploy.yml
+readonly VSCRIPT=incr-version.sh
+readonly PACKAGE=package.json
+readonly CHANGELOG=CHANGELOG.md
+readonly NEW_CHANGELOG=${CHANGELOG}.new
+readonly EDITOR=vim
+readonly VERBOSE=1
+
+readonly cls="\e(B\e[m"
+function yellow() { echo -en "\e[38;5;208m$1${cls}"; }
+function green() { echo -en "\e[38;5;112m$1${cls}"; }
+function red() { echo -en "\e[38;5;196m$1${cls}"; }
+function blue() { echo -en "\e[38;5;33m$1${cls}"; }
+function fade() { echo -en "\e[38;5;239m$1${cls}"; }
+
+function ask_for_string() {
+  local label="${1:-Label}"
+  local message="${2:-""}"
+  [[ "$message" = "-" ]] && message=""
+  local m
+  read -p "$(green "$label") [$(fade "${message}")]: " m
+  [[ "${m}" ]] && message=$m
+  echo "${message}"
+}
+
+function yesno() {
+  local label="${2:-yN}"
+  printf "$(yellow "$1") [$(green "$label")] "
+  while true; do
+    read -s -n 1 -r yn
+    [[ $yn == $'\E' ]] && echo "$(red EXIT)" && exit 1
+    [[ $yn == "" ]] && [[ $label == "yN" ]] && echo "$(yellow NO)" && yn=N && break
+    [[ $yn == "" ]] && [[ $label == "Yn" ]] && echo "$(yellow YES)" && yn=Y && break
+    [[ $yn =~ ^[YyNn]$ ]] && echo "$yn" && break
+  done
+  [[ "$yn" =~ ^[Yy] ]] && return 1
+  return 0
+}
+
+function abort() {
+  >&2 echo "$(red ABORT) $1"
+  exit 1
+}
+
+function log() {
+  [[ $VERBOSE ]] && echo "$1"
+}
+
+function info() {
+  log "$(blue INFO) $1"
+}
+
+function install_files() {
+  if [[ -s "${WORKFLOWS_DIR}/${DEPLOY_YML}" ]]; then
+    info "Found $(green ${DEPLOY_YML})"
+  else
+    yesno "Add GitHub Actions ${DEPLOY_YML} script?"
+    [[ $? = 0 ]] && abort "Can't continue without this script"
+    mkdir -p ${WORKFLOWS_DIR}
+    cp ${DEPLOY_YML} ${WORKFLOWS_DIR}
+  fi
+
+  if [[ -s "${SCRIPTS_DIR}/${VSCRIPT}" ]]; then
+    info "Found $(green ${VSCRIPT})"
+  else
+    mkdir -p ${SCRIPTS_DIR}
+    cp ${VSCRIPT} ${SCRIPTS_DIR}
+  fi
+}
+
+function get_released_version() {
+  local _ghloc=$(which gh)
+  [[ ! "$_ghloc" ]] \
+    && abort "Requires GitHub CLI (https://cli.github.com/)"
+
+  local _ghauth=$(gh auth status 2>&1 | grep 'Logged in')
+  [[ ! "${_ghauth}" ]] \
+    && abort "Authenticate with GitHub host (gh auth login)"
+
+  readonly RELEASED_VERSION=$(gh release list | grep 'Latest' | cut -f1)
+  [[ "$RELEASED_VERSION" ]] \
+    && info "Latest released version title is $(green "$RELEASED_VERSION")"
+}
+
+function set_new_version() {
+  local _prev_tag=$(git describe --tags --abbrev=0)
+  [[ "${_prev_tag}" ]] && _prev_tag="${_prev_tag}..HEAD"
+  readonly CHANGELOG_TXT=$(git log --pretty="- %s" ${_prev_tag})
+
+  V_MICRO=$(( V_MICRO + 1 ));
+  local _new_tag="${V_MAJOR}.${V_MINOR}.${V_MICRO}"
+
+  readonly NEW_VERSION=$(ask_for_string "New tag" "${_new_tag}")
+  info "New tag will be $(green "v${NEW_VERSION}")"
+}
+
+
+function collision_test() {
+  local _found=$(grep "#### ${NEW_VERSION}" ${CHANGELOG})
+  if [[ "${_found}" ]]; then
+    info "Tag v$(green ${NEW_VERSION}) exists in $(green "${CHANGELOG}")"
+
+    local _pr=$(gh pr list | grep 'update-version' | cut -f 1)
+    [[ ! "$_pr" ]] && abort "Remove it from ${CHANGELOG} to continue"
+
+    yesno "A PR exists do you want to merge it?"
+    [[ $? = 0 ]] && abort "Resolve this on you own and try again"
+
+    gh pr merge ${_pr} -s -d
+    git pull
+
+    info "Run this again"
+    exit 1
+  fi
+}
+
+function make_new_changelog() {
+  local _ymd=$(date +%Y-%m-%d)
+
+  echo -e "#### ${NEW_VERSION} (${_ymd})\n${CHANGELOG_TXT}" > ${NEW_CHANGELOG}
+
+  $EDITOR ${NEW_CHANGELOG}
+  echo "$(fade "----------------------------------------")"
+  cat ${NEW_CHANGELOG}
+  echo "$(fade "----------------------------------------")"
+  yesno "Add the above to $(green "${CHANGELOG}")?"
+  if [[ $? = 0 ]]; then
+    rm ${NEW_CHANGELOG}
+    abort "Removed $(green "${NEW_CHANGELOG}")"
+  fi
+}
+
+function merge_changelog() {
+  if [[ -s "${CHANGELOG}" ]]; then
+    info "Add new log to existing $(green ${CHANGELOG})"
+    echo -e "\n" >> ${NEW_CHANGELOG}
+    cat ${NEW_CHANGELOG} ${CHANGELOG} > ${CHANGELOG}
+  else
+    info "Creating new $(green ${CHANGELOG})"
+    cp ${NEW_CHANGELOG} ${CHANGELOG}
+  fi
+}
+
+function commit_changelog() {
+  info "Commit new $(green ${CHANGELOG})"
+
+  git add -A
+  git commit -m "docs: update changelog (${NEW_VERSION})"
+  git push
+}
+
+function create_release() {
+  info "Previous released title version $(yellow "${RELEASED_VERSION}")"
+  local _title=$(ask_for_string "New release title" "v${NEW_VERSION}")
+
+  info "Creating new GitHub release tag $(green "v${NEW_VERSION}") with title $(green "${_title}")"
+  gh release create "v${NEW_VERSION}" -t "${_title}" -F ${NEW_CHANGELOG}
+
+  info "Remove ${NEW_CHANGELOG}"
+  rm ${NEW_CHANGELOG}
+
+  info "Done! Check for new $(green "update-version") PR"
+}
+
+function get_current_version() {
+  readonly CURRENT_VERSION=$(grep '"version"' $PACKAGE | sed -e 's/^[^:]\+: "\([^"]\+\)".*/\1/g')
+  [[ ! "${CURRENT_VERSION}" ]] \
+    && abort "$PACKAGE must have $(green version) defined"
+
+  IFS='.' read V_MAJOR V_MINOR V_MICRO <<< "${CURRENT_VERSION##*-}"
+  info "Current tag is $(red ${V_MAJOR}).$(yellow ${V_MINOR}).$(green ${V_MICRO})"
+}
+
+install_files
+get_released_version
+get_current_version
+set_new_version
+collision_test
+make_new_changelog
+merge_changelog
+commit_changelog
+create_release

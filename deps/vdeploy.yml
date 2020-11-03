@@ -1,0 +1,37 @@
+name: vDeploy
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+    # - name: Build & Deploy
+    #   run: |
+    #     npm i --no-optional
+
+      - name: Get Tag Version
+        id: new_version
+        run: |
+          echo ::set-output name=VER::$(echo $GITHUB_REF | cut -d / -f 3)
+
+      - name: Update Version
+        id: old_version
+        run: |
+          echo ::set-output name=VER::\
+          $(./.github/scripts/incr-version.sh ${{ steps.new_version.outputs.VER }})
+
+      - name: Version PR
+        uses: peter-evans/create-pull-request@v3
+        with:
+          commit-message: Update to ${{ steps.new_version.outputs.VER }}
+          title: Update package.json (${{ steps.new_version.outputs.VER }})
+          body: ${{ steps.old_version.outputs.VER }}
+          branch: update-version
+          base: master
