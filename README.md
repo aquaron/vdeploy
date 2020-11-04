@@ -8,7 +8,7 @@ $ vdeploy
 ```
 That's it! It'll walk you through the setup process the first time.
 You will need to edit `.github/workflows/vdeploy.yml` to match your release process.
-(See this package's version of the file to get an idea).
+See this package's [vdeploy.yml] to get an idea how to set one up for your project.
 
 ### Process
 - Install the `vdeploy.yml` and `incr-version.sh` in the right places
@@ -26,6 +26,8 @@ When a release is created:
 - Increment `package.json`'s _minor_ `version`
 - Create a PR of the modified `package.json`
 
-## `.github/scripts/incr-version.sh`
+### `.github/scripts/incr-version.sh`
 
 Increment the version number _minor_ based on what was just released.
+
+[vdeploy.yml]: https://github.com/aquaron/vdeploy/blob/master/.github/workflows/vdeploy.yml
