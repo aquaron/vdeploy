@@ -57,6 +57,8 @@ function info() {
 function install_files() {
   local _file=$(readlink -f $0)
   local _deps_dir=$(dirname $_file)/../deps
+  local _dirty=0
+
   if [[ -s "${WORKFLOWS_DIR}/${DEPLOY_YML}" ]]; then
     info "Found $(green ${DEPLOY_YML})"
   else
@@ -64,6 +66,7 @@ function install_files() {
     [[ $? = 0 ]] && abort "Can't continue without this script"
     mkdir -p ${WORKFLOWS_DIR}
     cp ${_deps_dir}/${DEPLOY_YML} ${WORKFLOWS_DIR}
+    _dirty=1
   fi
 
   if [[ -s "${SCRIPTS_DIR}/${VSCRIPT}" ]]; then
@@ -71,6 +74,7 @@ function install_files() {
   else
     mkdir -p ${SCRIPTS_DIR}
     cp ${_deps_dir}/${VSCRIPT} ${SCRIPTS_DIR}
+    _dirty=1
   fi
 
   local _branch=$(git branch 2>&1 | grep '*' | cut -f2 -d" ")
@@ -78,6 +82,10 @@ function install_files() {
 
   sed -i "s/base: .*/base: ${_branch}/" ${WORKFLOWS_DIR}/${DEPLOY_YML}
   info "Found branch $(green "${_branch}")"
+
+  [[ "${_dirty}" = 1 ]] \
+    && info "Edit $(green "${WORKFLOWS_DIR}/${DEPLOY_YML}") to match your release" \
+    && exit 1
 }
 
 function get_released_version() {
