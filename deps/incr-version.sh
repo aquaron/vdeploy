@@ -2,7 +2,7 @@
 
 DOT=${1:-minor}
 PACKAGE=${GITHUB_WORKSPACE:-.}/package.json
-VERSION=$(grep '"version"' $PACKAGE | sed -e 's/^[^:]\+: "\([^"]\+\)".*/\1/g')
+VERSION=$(grep '"version":' $PACKAGE | sed -e 's/^[^:]\+: "\([^"]\+\)".*/\1/g')
 
 function error() {
   >&2 echo "Error: $1"
