@@ -1,4 +1,4 @@
-# @aquaron/vdeploy
+# @aquaron/vdeploy [![NPM Package]][vdeploy]
 
 Automate versioning (and changelogs) when a release is created.
 
@@ -31,3 +31,5 @@ When a release is created:
 Increment the version number _minor_ based on what was just released.
 
 [vdeploy.yml]: https://github.com/aquaron/vdeploy/blob/master/.github/workflows/vdeploy.yml
+[NPM Package]: https://github.com/aquaron/vdeploy/workflows/NPM%20Package/badge.svg
+[vdeploy]: https://www.npmjs.com/package/@aquaron/vdeploy
