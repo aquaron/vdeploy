@@ -1,7 +1,7 @@
 {
   "name": "@aquaron/vdeploy",
   "description": "Manage deployment, changelog, and version",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "author": "Paul Pham <npm@aquaron.com>",
   "homepage": "https://github.com/aquaron/vdeploy",
   "bugs": {
