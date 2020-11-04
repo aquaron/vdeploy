@@ -11,6 +11,11 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+      - name: Get Tag Version
+        id: new_version
+        run: echo ::set-output name=VER::$(echo $GITHUB_REF | cut -d / -f 3)
+      - name: Update Version
+        run: ./.github/scripts/incr-version.sh ${{ steps.new_version.outputs.VER }}
       - uses: actions/setup-node@v1
         with:
           node-version: 12
@@ -26,6 +31,11 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+      - name: Get Tag Version
+        id: new_version
+        run: echo ::set-output name=VER::$(echo $GITHUB_REF | cut -d / -f 3)
+      - name: Update Version
+        run: ./.github/scripts/incr-version.sh ${{ steps.new_version.outputs.VER }}
       - uses: actions/setup-node@v1
         with:
           node-version: 12
