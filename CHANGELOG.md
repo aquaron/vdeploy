@@ -1,2 +1,4 @@
-#### 0.0.1 (2020-11-03)
-- Initial release using itself as the deployment script
+#### 0.0.2 (2020-11-03)
+- chore: set version in package.json before publish
+
+
