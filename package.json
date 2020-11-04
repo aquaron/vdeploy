@@ -1,10 +1,12 @@
 {
-  "name": "vdeploy",
+  "name": "@aquaron/vdeploy",
   "description": "Manage deployment, changelog, and version",
   "version": "0.0.0",
   "author": "Paul Pham <npm@aquaron.com>",
   "homepage": "https://github.com/aquaron/vdeploy",
-  "bugs": "https://github.com/aquaron/vdeploy/issues",
+  "bugs": {
+    "url": "https://github.com/aquaron/vdeploy/issues"
+  },
   "keywords": [
     "deploy",
     "release",
@@ -13,10 +15,12 @@
     "binary"
   ],
   "bin": {
-    "vdeploy": "./bin/vdeploy"
+    "vdeploy": "bin/vdeploy"
   },
   "files": [
-    "bin/vdeploy"
+    "bin/vdeploy",
+    "deps/incr-version.sh",
+    "deps/vdeploy.yml"
   ],
   "repository": {
     "type": "git",
