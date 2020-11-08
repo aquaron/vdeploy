@@ -59,7 +59,7 @@ function install_files() {
   local _deps_dir=$(dirname $_file)/../deps
   local _dirty=0
 
-  if [[ -s "${WORKFLOWS_DIR}/${DEPLOY_YML}" ]]; then
+  if [[ ! "$(grep -L "scripts/${VSCRIPT}" ${WORKFLOWS_DIR}/*.yml)" ]]; then
     info "Found $(green ${DEPLOY_YML})"
   else
     yesno "Add GitHub Actions ${DEPLOY_YML} script?"
@@ -163,7 +163,8 @@ function merge_changelog() {
   if [[ -s "${CHANGELOG}" ]]; then
     info "Add new log to existing $(green ${CHANGELOG})"
     echo -e "\n" >> ${NEW_CHANGELOG}
-    cat ${NEW_CHANGELOG} ${CHANGELOG} > ${CHANGELOG}
+    cat ${NEW_CHANGELOG} ${CHANGELOG} > ${CHANGELOG}.temp
+    mv ${CHANGELOG}.temp ${CHANGELOG}
   else
     info "Creating new $(green ${CHANGELOG})"
     cp ${NEW_CHANGELOG} ${CHANGELOG}
