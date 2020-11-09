@@ -1,3 +1,9 @@
+#### 0.0.4 (2020-11-09)
+- feat: Check and update incr-version.sh (#2)
+- fix: Grep for yml bug
+- fix: Now check first if in the right dir
+
+
 #### 0.0.3 (2020-11-07)
 - fix: Remove dependency on naming vdeploy.yml (#2)
 - fix: CHANGELOG.md now has a history
