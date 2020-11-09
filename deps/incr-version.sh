@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+## VERSION 1
 
 DOT=${1:-minor}
 PACKAGE=${GITHUB_WORKSPACE:-.}/package.json

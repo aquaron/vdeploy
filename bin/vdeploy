@@ -59,7 +59,7 @@ function install_files() {
   local _deps_dir=$(dirname $_file)/../deps
   local _dirty=0
 
-  if [[ ! "$(grep -L "scripts/${VSCRIPT}" ${WORKFLOWS_DIR}/*.yml)" ]]; then
+  if [[ "$(grep -l "scripts/${VSCRIPT}" ${WORKFLOWS_DIR}/*.yml 2> /dev/null)" ]]; then
     info "Found $(green ${DEPLOY_YML})"
   else
     yesno "Add GitHub Actions ${DEPLOY_YML} script?"
@@ -69,8 +69,16 @@ function install_files() {
     _dirty=1
   fi
 
-  if [[ -s "${SCRIPTS_DIR}/${VSCRIPT}" ]]; then
+  local _incr_script="${SCRIPTS_DIR}/${VSCRIPT}"
+  if [[ -s "${_incr_script}" ]]; then
     info "Found $(green ${VSCRIPT})"
+    ## check version
+    local _cversion=$(grep '## VERSION' ${_incr_script} | cut -f3 -d" ")
+    local _nversion=$(grep '## VERSION' ${_deps_dir}/${VSCRIPT} | cut -f3 -d" ")
+    if [[ ! ${_cversion} = ${_nversion} ]]; then
+      info "Update $(yellow ${VSCRIPT}) from $(red ${_cversion}) -> $(green ${_nversion})"
+      cp ${_deps_dir}/${VSCRIPT} ${SCRIPTS_DIR}
+    fi
   else
     mkdir -p ${SCRIPTS_DIR}
     cp ${_deps_dir}/${VSCRIPT} ${SCRIPTS_DIR}
@@ -209,9 +217,9 @@ function get_current_version() {
   info "Current tag is $(red ${V_MAJOR}).$(yellow ${V_MINOR}).$(green ${V_MICRO})"
 }
 
+get_current_version
 install_files
 get_released_version
-get_current_version
 set_new_version
 collision_test
 make_new_changelog
