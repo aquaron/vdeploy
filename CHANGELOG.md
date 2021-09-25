@@ -1,3 +1,9 @@
+#### 0.0.5 (2021-09-24)
+
+- fix(style): Newline after title, one line between changes
+- Update package.json (v0.0.4) (#4)
+
+
 #### 0.0.4 (2020-11-09)
 - feat: Check and update incr-version.sh (#2)
 - fix: Grep for yml bug
