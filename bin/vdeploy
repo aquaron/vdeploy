@@ -154,7 +154,7 @@ function collision_test() {
 function make_new_changelog() {
   local _ymd=$(date +%Y-%m-%d)
 
-  echo -e "#### ${NEW_VERSION} (${_ymd})\n${CHANGELOG_TXT}" > ${NEW_CHANGELOG}
+  echo -e "#### ${NEW_VERSION} (${_ymd})\n\n${CHANGELOG_TXT}" > ${NEW_CHANGELOG}
 
   $EDITOR ${NEW_CHANGELOG}
   echo "$(fade "----------------------------------------")"
@@ -170,7 +170,7 @@ function make_new_changelog() {
 function merge_changelog() {
   if [[ -s "${CHANGELOG}" ]]; then
     info "Add new log to existing $(green ${CHANGELOG})"
-    echo -e "\n" >> ${NEW_CHANGELOG}
+    echo -e "" >> ${NEW_CHANGELOG}
     cat ${NEW_CHANGELOG} ${CHANGELOG} > ${CHANGELOG}.temp
     mv ${CHANGELOG}.temp ${CHANGELOG}
   else
