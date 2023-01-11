@@ -1,3 +1,11 @@
+#### 0.1.0 (2023-01-11)
+
+- feat(deps): Upgrade `vdeploy.yml` skeleton file
+- chore(deploy): Future-proofing (hopefully) with fewer depedencies
+- chore(rollback): Undo previous irrational exuberant release
+- docs: update changelog (0.1.0)
+- chore(clean): Remove `package-lock.json`. Cleansed `.gitignore`
+
 #### 0.0.5 (2021-09-24)
 
 - fix(style): Newline after title, one line between changes
