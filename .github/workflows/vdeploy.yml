@@ -8,40 +8,40 @@ jobs:
   publish-npm:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@master
         with:
           fetch-depth: 0
+
       - name: Get Tag Version
         id: new_version
-        run: echo ::set-output name=VER::$(echo $GITHUB_REF | cut -d / -f 3)
+        run: |
+          echo "VER=$(echo $GITHUB_REF | cut -d / -f 3)" >> $GITHUB_OUTPUT
+
       - name: Update Version
         run: ./.github/scripts/incr-version.sh ${{ steps.new_version.outputs.VER }}
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
-          registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: npm publish
+
+      - name: Publising to NPM
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
   publish-gpr:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@master
         with:
           fetch-depth: 0
+
       - name: Get Tag Version
         id: new_version
-        run: echo ::set-output name=VER::$(echo $GITHUB_REF | cut -d / -f 3)
+        run: |
+          echo "VER=$(echo $GITHUB_REF | cut -d / -f 3)" >> $GITHUB_OUTPUT
+
       - name: Update Version
         run: ./.github/scripts/incr-version.sh ${{ steps.new_version.outputs.VER }}
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
-          registry-url: https://npm.pkg.github.com/
-      - run: npm ci
-      - run: npm publish
+
+      - name: Publising to GPR
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
@@ -49,23 +49,23 @@ jobs:
     runs-on: ubuntu-latest
     needs: [publish-npm, publish-gpr]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@master
         with:
           fetch-depth: 0
 
       - name: Get Tag Version
         id: new_version
         run: |
-          echo ::set-output name=VER::$(echo $GITHUB_REF | cut -d / -f 3)
+          echo "VER=$(echo $GITHUB_REF | cut -d / -f 3)" >> $GITHUB_OUTPUT
 
       - name: Update Version
         id: old_version
         run: |
-          echo ::set-output name=VER::\
-          $(./.github/scripts/incr-version.sh ${{ steps.new_version.outputs.VER }})
+          echo "VER=$(./.github/scripts/incr-version.sh ${{ steps.new_version.outputs.VER }})" \
+          >> $GITHUB_OUTPUT
 
       - name: Version PR
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@master
         with:
           commit-message: Update to ${{ steps.new_version.outputs.VER }}
           title: Update package.json (${{ steps.new_version.outputs.VER }})
