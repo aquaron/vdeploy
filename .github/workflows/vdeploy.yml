@@ -9,41 +9,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
-        with:
-          fetch-depth: 0
 
-      - name: Get Tag Version
-        id: new_version
-        run: |
-          echo "VER=$(echo $GITHUB_REF | cut -d / -f 3)" >> $GITHUB_OUTPUT
-
-      - name: Update Version
-        run: ./.github/scripts/incr-version.sh ${{ steps.new_version.outputs.VER }}
+      - name: Tag Version
+        run: ./.github/scripts/incr-version.sh "$(echo $GITHUB_REF | cut -d / -f 3)"
 
       - name: Publising to NPM
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+        uses: JS-DevTools/npm-publish@master
+        with:
+          registry: https://registry.npmjs.org/
+          token: ${{secrets.NPM_TOKEN}}
 
   publish-gpr:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
-        with:
-          fetch-depth: 0
 
-      - name: Get Tag Version
-        id: new_version
-        run: |
-          echo "VER=$(echo $GITHUB_REF | cut -d / -f 3)" >> $GITHUB_OUTPUT
-
-      - name: Update Version
-        run: ./.github/scripts/incr-version.sh ${{ steps.new_version.outputs.VER }}
+      - name: Tag Version
+        run: ./.github/scripts/incr-version.sh "$(echo $GITHUB_REF | cut -d / -f 3)"
 
       - name: Publising to GPR
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        uses: JS-DevTools/npm-publish@master
+        with:
+          registry: https://npm.pkg.github.com/
+          token: ${{secrets.NPM_TOKEN}}
 
   vdeploy:
     runs-on: ubuntu-latest
@@ -55,14 +43,12 @@ jobs:
 
       - name: Get Tag Version
         id: new_version
-        run: |
-          echo "VER=$(echo $GITHUB_REF | cut -d / -f 3)" >> $GITHUB_OUTPUT
+        run: echo "VER=$(echo $GITHUB_REF | cut -d / -f 3)" >> $GITHUB_OUTPUT
 
       - name: Update Version
         id: old_version
-        run: |
-          echo "VER=$(./.github/scripts/incr-version.sh ${{ steps.new_version.outputs.VER }})" \
-          >> $GITHUB_OUTPUT
+        run: echo "VER=$(./.github/scripts/incr-version.sh ${{ steps.new_version.outputs.VER }})" \
+                  >> $GITHUB_OUTPUT
 
       - name: Version PR
         uses: peter-evans/create-pull-request@master
