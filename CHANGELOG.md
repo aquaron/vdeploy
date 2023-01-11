@@ -1,3 +1,8 @@
+#### 0.1.0 (2023-01-11)
+
+- chore(clean): Remove `package-lock.json`. Cleansed `.gitignore`
+- Update to v0.0.5 (#5)
+
 #### 0.0.5 (2021-09-24)
 
 - fix(style): Newline after title, one line between changes
