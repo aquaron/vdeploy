@@ -138,7 +138,15 @@ function collision_test() {
     info "Tag v$(green ${NEW_VERSION}) exists in $(green "${CHANGELOG}")"
 
     local _pr=$(gh pr list | grep 'update-version' | cut -f 1)
-    [[ ! "$_pr" ]] && abort "Remove it from ${CHANGELOG} to continue"
+    if [[ ! "$_pr" ]]; then
+      yesno "Initiate rollback?"
+      [[ $? = 0 ]] && abort "Remove it from ${CHANGELOG} to continue"
+
+      rollback
+
+      info "Check in changes and run release again"
+      exit 1
+    fi
 
     yesno "A PR exists do you want to merge it?"
     [[ $? = 0 ]] && abort "Resolve this on you own and try again"
@@ -215,6 +223,22 @@ function get_current_version() {
 
   IFS='.' read V_MAJOR V_MINOR V_MICRO <<< "${CURRENT_VERSION##*-}"
   info "Current tag is $(red ${V_MAJOR}).$(yellow ${V_MINOR}).$(green ${V_MICRO})"
+}
+
+function rollback() {
+  local _latest_version=$(gh release list -L 1 | grep Latest | cut -f1)
+
+  if [[ "v${NEW_VERSION}" = $_latest_version ]]; then
+    yesno "Rollback version $(red $_latest_version)?"
+    [[ $? = 0 ]] && abort "Delete $_latest_version from GitHub or change release version number"
+    gh release delete -y --cleanup-tag $_latest_version
+    info "Latest release is now -> $(gh release list -L 1 | grep Latest | cut -f1)"
+  fi
+
+  yesno "Remove $(red $_latest_version) from ${CHANGELOG}?"
+  [[ $? = 0 ]] && abort "Please remove it from ${CHANGELOG} manually and check in"
+  sed -i -e '1,/^$/d' -e '1,/^$/d' ${CHANGELOG}
+  info "Removed $(red ${_latest_version}) history from ${CHANGELOG}"
 }
 
 get_current_version
