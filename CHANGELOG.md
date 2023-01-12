@@ -1,3 +1,11 @@
+#### 0.1.1 (2023-01-11)
+
+- feat: Template uses `github.ref_name`
+- chore(fix): Missing the name parameter
+- chore(deploy): Switch to use `github.ref_name` for release version
+- chore(deploy): Restore deployments to repos
+- Update to v0.1.0 (#6)
+
 #### 0.1.0 (2023-01-11)
 
 - chore(dependabot): Update GHA packages
