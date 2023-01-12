@@ -16,23 +16,15 @@ jobs:
     #   run: |
     #     npm i --no-optional
 
-      - name: Get Tag Version
-        id: new_version
-        run: |
-          echo "VER=$(echo $GITHUB_REF | cut -d / -f 3)" >> $GITHUB_OUTPUT
-
-
-      - name: Update Version
-        id: old_version
-        run: |
-          echo "VER=$(./.github/scripts/incr-version.sh ${{ steps.new_version.outputs.VER }})" \
-          >> $GITHUB_OUTPUT
+      - name: Increment Version
+        run: echo "bodyText=$(./.github/scripts/incr-version.sh ${{ github.ref_name }})" \
+             >> $GITHUB_ENV
 
       - name: Version PR
         uses: peter-evans/create-pull-request@master
         with:
-          commit-message: Update to ${{ steps.new_version.outputs.VER }}
-          title: Update package.json (${{ steps.new_version.outputs.VER }})
-          body: ${{ steps.old_version.outputs.VER }}
+          commit-message: Update to ${{ github.ref_name }}
+          title: Update package.json (${{ github.ref_name }})
+          body: ${{ env.bodyText }}
           branch: update-version
           base: master
