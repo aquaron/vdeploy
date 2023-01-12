@@ -1,3 +1,9 @@
+#### 0.2.0 (2023-01-12)
+
+- fix(template): Switch from `master` to `main`
+- feat(rollback): Undo `CHANGELOG.md` changes. Remove release/tag on rollback
+- Update to v0.1.1 (#7)
+
 #### 0.1.1 (2023-01-11)
 
 - feat: Template uses `github.ref_name`
