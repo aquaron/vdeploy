@@ -45,6 +45,7 @@ jobs:
         run: echo "bodyText=$(./.github/scripts/incr-version.sh ${{ github.ref_name }})" \
              >> $GITHUB_ENV
 
+      - name: Version PR
         uses: peter-evans/create-pull-request@v4
         with:
           commit-message: Update to ${{ github.ref_name }}
