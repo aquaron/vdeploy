@@ -14,7 +14,7 @@ jobs:
         run: ./.github/scripts/incr-version.sh ${{ github.ref_name }}
 
       - name: Publising to NPM
-        uses: JS-DevTools/npm-publish@v1
+        uses: JS-DevTools/npm-publish@v2
         with:
           registry: https://registry.npmjs.org/
           token: ${{ secrets.NPM_TOKEN }}
@@ -28,7 +28,7 @@ jobs:
         run: ./.github/scripts/incr-version.sh ${{ github.ref_name }}
 
       - name: Publising to GPR
-        uses: JS-DevTools/npm-publish@v1
+        uses: JS-DevTools/npm-publish@v2
         with:
           registry: https://npm.pkg.github.com/
           token: ${{ secrets.GITHUB_TOKEN }}
